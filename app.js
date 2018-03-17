@@ -33,13 +33,7 @@ var crawler = new supercrawler.Crawler({
   // Time (ms) to cache the results of robots.txt queries.
   robotsCacheTime: 3600000,
   // Query string to use during the crawl.
-  userAgent: "Mozilla/5.0 (compatible; supercrawler/1.0; +https://github.com/brendonboshell/supercrawler)",
-  // Custom options to be passed to request.
-  request: {
-    headers: {
-      'x-custom-header': 'example'
-    }
-  }
+  userAgent: "Mozilla/5.0 (compatible; supercrawler/1.0; +https://github.com/brendonboshell/supercrawler)"
 });
 
 var externalIP;
@@ -64,9 +58,6 @@ crawler.addHandler("text/html", htmlLinkParser({
 
 // Custom content handler for HTML pages.
 crawler.addHandler(function(context) {
-  var sizeKb = Buffer.byteLength(context.body) / 1024;
-  console.log("Processed", context.url, "Size=", sizeKb, "KB");
-
   res = {
     date: new Date(),
     creator: AGENT.name,
@@ -88,6 +79,7 @@ crawler.addHandler(function(context) {
   if(context.response.statusCode == 451){
     axios.post("http://31.133.134.193:3000/report/", res)
         .then(function (response) {
+            console.log("Found and Reported: " + JSON.parse(response.config.data).url);
         })
         .catch(function (error) {
           console.error(error);
@@ -101,7 +93,6 @@ axios.get('https://api.ipify.org')
 }).then(()=>{
   crawler.getUrlList()
     .insertIfNotExists(new supercrawler.Url("http://dretzq.co.uk/test451/"))
-    // .insertIfNotExists(new supercrawler.Url("https://blog.nunnun.jp"))
     .then(function() {
       return crawler.start();
     });
